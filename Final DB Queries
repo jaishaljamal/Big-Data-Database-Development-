@@ -1,0 +1,31 @@
+1.Get Products with Product Description
+
+db.user.find({"Products.Description": "Locally-grown organic apples."})
+
+2.For obtaining only the product ID, Product Name & Description where category is fruits and weight is more than 0.5
+
+db.user.find(
+{ "Products.Category": "Fruits", "Products.Weight":
+{ $gt: 0.5 } },
+{ "Products.ProductID": 1, "Products.ProductName":
+1, "Products.Description": 1, "_id": 0 }
+);
+
+
+3. For obtaining the username and userID where the packaging type is plastic bag and the quantity available is more than 125
+
+db.user.aggregate([
+{
+$match: {
+"Products.PackagingType": "Plastic bag",
+"Products.QuantityAvailable": { $gt: 125 }
+}
+},
+{
+$project: {
+_id: 0,
+"Users.userName": 1,
+"Users.user_Id": 1
+}
+}
+]);
