@@ -1,0 +1,39 @@
+To Paris with MongoDB - Big data database query and manipulation 
+
+- Find queries:
+1. Give the name of the places whose category is “accommodation”.
+db.paris.find({ category: "accommodation" }, { name: 1, _id: 0 })
+
+2. Give the name and phone number of places with a phone number entered ($exists, $ne);
+db.paris.find({ "contact.phone": { $exists: true, $ne: null } }, { name: 1, "contact.phone": 1, _id: 0 })
+
+3. Name and contacts of places with” website” and” Foursquare” provided;
+db.paris.find({ $and: [{ "contact.GooglePlaces": { $exists: true, $ne: null } }, { "contact.Foursquare": { $exists: true, $ne: null } }] }, { name: 1, "contact.GooglePlaces": 1, "contact.Foursquare": 1, _id: 0 })
+
+4. Name of places whose name contains the word “hotel” (pay attention to case);
+db.paris.find({ name: { $regex: /hotel/i } }, { name: 1, _id: 0 })
+
+5. Name and services of places offering 5 services;
+db.paris.find({ "services": { $size: 5 } }, { name: 1, services: 1, _id: 0 })
+
+
+6. Categories of places with at least a rating (reviews.rating) of 4 or more;
+db.paris.distinct("category", { "reviews.rating": { $gte: 4 } })
+
+7. GPS coordinates of places whose address contains “rue de rome”;
+db.paris.find({ "location.address": /rue de rome/i }, { "location.coord.coordinates": 1, _id: 0 })
+
+- Aggregate queries:
+8. For each ”poi” category place name, give the number of reviews whose source (reviews.source) is “Facebook”. Sort in descending order;
+db.paris.aggregate([{ $match: { category: "poi" } }, { $unwind: "$reviews" }, { $match: { "reviews.source": "Facebook" } }, { $group: { _id: "$name", totalReviews: { $sum: 1 } } }, { $sort: { totalReviews: -1 } }])
+
+9. For each place name in the “restaurant” category, give the average rating and the number of comments.
+db.paris.aggregate([{ $match: { category: "restaurant" } }, { $group: { _id: "$name", avgRating: { $avg: "$reviews.rating" }, totalComments: { $sum: 1 } } }])
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+$Lookup command and it's execution:
+//The following query would match documents from the current collection with documents from the "otherCollection" based on specified fields and add the matching documents as an array to a new field called "newField" in the output
+
+db.paris.aggregate([{$lookup: {from: "otherCollection", localField: "localField", foreignField: "foreignField", as: "newField"}}])
